@@ -1,23 +1,39 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"redisrelay/cmd/client"
+	"redisrelay/cmd/server"
 
 	"github.com/gofiber/contrib/websocket"
 	fiber "github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	server := fiber.New()
-	clients := []*websocket.Conn{}
+	port := flag.String("port", "8080", "Port")
+    host := flag.String("host", "127.0.0.1", "Host")
+	mode := flag.String("mode", "client", "Mode (client or server)")
+	flag.Parse()
+    // redisAddr := flag.String("redis", "localhost:6379", "Redis server address")
 
-	server.Get("/ws", handleInitWsConnection)
-	server.Get("/ws", func(c *fiber.Ctx) error {
-		return handleWsConnection(c, &clients)
-	})
 
-	if err := server.Listen(":8080"); err != nil {
-		panic(err)
+	if *mode == "server" {
+		serverApp := fiber.New()
+		clients := []*websocket.Conn{}
+
+		serverApp.Get("/ws", handleInitWsConnection)
+		serverApp.Get("/ws", func(c *fiber.Ctx) error {
+			return handleWsConnection(c, &clients, *mode, *host, *port)
+		})
+
+		if err := serverApp.Listen(*host + ":" + *port); err != nil {
+			panic(err)
+		}
+	}
+
+	if *mode == "client" {
+		client.Connect(*host, *port)
 	}
 
 }
@@ -31,38 +47,11 @@ func handleInitWsConnection(c *fiber.Ctx) error {
 	return fiber.ErrUpgradeRequired
 }
 
-func handleWsConnection(c *fiber.Ctx, clients *[]*websocket.Conn) error {
-	return websocket.New(func(c *websocket.Conn) {
-		// c.Locals is added to the *websocket.Conn
-		log.Println(c.Locals("allowed"))  // true
-		log.Println(c.Params("id"))       // 123
-		log.Println(c.Query("v"))         // 1.0
-		log.Println(c.Cookies("session")) // ""
+func handleWsConnection(c *fiber.Ctx, clients *[]*websocket.Conn, mode string, host string, port string) error {
 
-		*clients = append(*clients, c)
-
-		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
-		var (
-			msg []byte
-			err error
-		)
-		for {
-			if _, msg, err = c.ReadMessage(); err != nil {
-				log.Println("read:", err)
-				break
-			}
-			if string(msg) == "ping" {
-				msg = []byte("pong")
-				writeToClients(*clients, msg)
-			} else {
-				writeToClients(*clients, []byte("no"))
-			}
-
-
-		}
-
-	})(c)
+	return websocket.New((server.HandleCLients(clients)))(c)
 }
+
 
 
 func writeToClients(clients []*websocket.Conn, msg []byte) {
