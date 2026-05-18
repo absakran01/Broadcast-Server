@@ -3,7 +3,6 @@ ENV CGO_ENABLED=0
 WORKDIR /app
 COPY . .
 RUN go build \
-    -ldflags "-s -w -extldflags '-static'" \
     -o /tmp/helloworld \
     main.go
 
