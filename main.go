@@ -2,13 +2,22 @@ package main
 
 import (
 	"flag"
-	"log"
 	"redisrelay/cmd/client"
 	"redisrelay/cmd/server"
+	"redisrelay/model"
 
 	"github.com/gofiber/contrib/websocket"
 	fiber "github.com/gofiber/fiber/v2"
 )
+
+
+var (
+	clients = &model.Clients{
+		WsConns: make(map[string]*websocket.Conn),
+	}
+
+)
+
 
 func main() {
 	port := flag.String("port", "8080", "Port")
@@ -17,15 +26,10 @@ func main() {
 	flag.Parse()
     // redisAddr := flag.String("redis", "localhost:6379", "Redis server address")
 
-
 	if *mode == "server" {
 		serverApp := fiber.New()
-		clients := []*websocket.Conn{}
 
-		serverApp.Get("/ws", handleInitWsConnection)
-		serverApp.Get("/ws", func(c *fiber.Ctx) error {
-			return handleWsConnection(c, &clients, *mode, *host, *port)
-		})
+		server.Routes(serverApp, clients)
 
 		if err := serverApp.Listen(*host + ":" + *port); err != nil {
 			panic(err)
@@ -38,27 +42,3 @@ func main() {
 
 }
 
-func handleInitWsConnection(c *fiber.Ctx) error {
-	if websocket.IsWebSocketUpgrade(c) {
-		c.Locals("allowed", true)
-		return c.Next()
-	}
-
-	return fiber.ErrUpgradeRequired
-}
-
-func handleWsConnection(c *fiber.Ctx, clients *[]*websocket.Conn, mode string, host string, port string) error {
-
-	return websocket.New((server.HandleCLients(clients)))(c)
-}
-
-
-
-func writeToClients(clients []*websocket.Conn, msg []byte) {
-	for _, client := range clients {
-		if err := client.WriteMessage(websocket.TextMessage, msg); err != nil {
-			log.Println("write:", err)
-			client.Close()
-		}
-	}
-}

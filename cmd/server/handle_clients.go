@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"redisrelay/model"
 
 	"github.com/gofiber/contrib/websocket"
 )
@@ -10,7 +11,7 @@ const (
 	ACK = "ack"
 )
 
-func HandleCLients(clients *[]*websocket.Conn) func(c *websocket.Conn) {
+func HandleCLients(clients *model.Clients) func(c *websocket.Conn) {
 	return func(c *websocket.Conn) {
 		// c.Locals is added to the *websocket.Conn
 		log.Println(c.Locals("allowed"))  // true
@@ -18,8 +19,9 @@ func HandleCLients(clients *[]*websocket.Conn) func(c *websocket.Conn) {
 		log.Println(c.Query("v"))         // 1.0
 		log.Println(c.Cookies("session")) // ""
 
-		*clients = append(*clients, c)
-
+		addClient(clients, c)
+		defer removeClient(clients, c)
+		
 		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
 		var (
 			msg []byte
@@ -33,11 +35,24 @@ func HandleCLients(clients *[]*websocket.Conn) func(c *websocket.Conn) {
 			if err := writeToSender(c, []byte(ACK)); err != nil {
 				log.Println("ERROR:", err)
 			}
-			if err := writeToClients(*clients, msg); err != nil {
+			if err := writeToClients(clients, msg); err != nil {
 				log.Println("ERROR:", err)
 			}
 
 		}
 
 	}
+}
+
+
+func addClient(clients *model.Clients, c *websocket.Conn) {
+	clients.Mu.Lock()
+	defer clients.Mu.Unlock()
+	clients.WsConns[c.RemoteAddr().String()] = c
+}
+
+func removeClient(clients *model.Clients, c *websocket.Conn) {
+	clients.Mu.Lock()
+	defer clients.Mu.Unlock()
+	delete(clients.WsConns, c.RemoteAddr().String())
 }
