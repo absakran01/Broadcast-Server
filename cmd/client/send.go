@@ -3,6 +3,7 @@ package client
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -14,13 +15,29 @@ var (
 	input string
 )
 
-func write(remoteConn *websocket.Conn) {
+func write(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error) {
 	reader := bufio.NewReader(os.Stdin)
+
 	for {
-		fmt.Print("Enter message to send: ")
-		input, _ = reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-		remoteConn.WriteMessage(websocket.TextMessage, []byte(input))
-		time.Sleep(1 * time.Second) // Add a small delay to display ack before next input
+		select {
+		case <-quit:
+			log.Println("Write goroutine stopping...")
+			return
+		default:
+			fmt.Print("Enter message: ")
+			input, _ := reader.ReadString('\n')
+			input = strings.TrimSpace(input)
+
+			err := conn.WriteMessage(websocket.TextMessage, []byte(input))
+			if err != nil {
+				select {
+				case reconnect <- err: // Try to send
+					log.Println("Signaling reconnect from write")
+				default: // Already signaled by receive goroutine
+				}
+				return
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 }

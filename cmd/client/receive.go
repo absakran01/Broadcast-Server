@@ -7,26 +7,32 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func recieve(remoteConn *websocket.Conn, localMsgIndx int) {
+func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error, msgIdx *int) {
 	for {
-		_, msg, err := remoteConn.ReadMessage()
-		if err != nil {
-			panic("failed to read message from server: " + err.Error())
-		}
+		select {
+		case <-quit:
+			log.Println("Receive goroutine stopping...")
+			return
+		default:
 
-		if string(msg) == "ACK" {
-			log.Println("Received ACK from server")
-			log.Printf("local msg indx: %d", localMsgIndx)
-			continue
-		}
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				select {
+				case reconnect <- err: // Try to send
+					log.Println("Signaling reconnect from receive")
+				default: // Already signaled by write goroutine
+				}
+				return
+			}
 
-		fmt.Println("Received from server:", string(msg))
-		fmt.Printf("localMsgIndx: %d\n", localMsgIndx)
-		localMsgIndx++
+			if string(msg) == "ACK" {
+				continue
+			}
 
-		err = remoteConn.WriteMessage(websocket.TextMessage, []byte("ACK"))
-		if err != nil {
-			panic("failed to send ack to server: " + err.Error())
+			fmt.Println("Received:", string(msg))
+			*msgIdx++
+
+			conn.WriteMessage(websocket.TextMessage, []byte("ACK"))
 		}
 	}
 }
