@@ -13,9 +13,9 @@ var (
 )
 
 func write(remoteConn *websocket.Conn) {
+	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("Enter message to send: ")
-		reader := bufio.NewReader(os.Stdin)
 		input, _ = reader.ReadString('\n')
 		input = input[:len(input)-1] // Remove the newline character
 		remoteConn.WriteMessage(websocket.TextMessage, []byte(input))
