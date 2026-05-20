@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,14 +19,8 @@ func write(remoteConn *websocket.Conn) {
 	for {
 		fmt.Print("Enter message to send: ")
 		input, _ = reader.ReadString('\n')
-		input = input[:len(input)-1] // Remove the newline character
+		input = strings.TrimSpace(input)
 		remoteConn.WriteMessage(websocket.TextMessage, []byte(input))
-		_, ack, err := remoteConn.ReadMessage()
-		if err != nil {
-			panic("failed to read ack from server: " + err.Error())
-		}
-		if string(ack) != "ACK" {
-			panic("unexpected response from server: " + string(ack))
-		}
+		time.Sleep(1 * time.Second) // Add a small delay to display ack before next input
 	}
 }
