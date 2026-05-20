@@ -3,6 +3,7 @@ package server
 import (
 	"broadcast-server/internal/comms"
 	"broadcast-server/internal/model"
+	"broadcast-server/internal/util"
 	"log"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 
 var (
 	globalMsgIndx = 0
+	msgs		  = make(map[int]*model.Message)
 )
 
 func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
@@ -26,21 +28,43 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 		defer clients.Remove(c)
 
 		writeToClient(c, []byte(strconv.Itoa(globalMsgIndx)))
+		_, clientLocalMsgIndx, err := c.ReadMessage()
+		if clientLocalMsgIndx == nil || err != nil {
+			log.Printf("Failed to read client's local message index: %v", err)
+		} else {
+			log.Printf("Client's local message index: %s", string(clientLocalMsgIndx))
+			localMsgIndx, err := strconv.Atoi(string(clientLocalMsgIndx))
+			if err != nil {
+				log.Printf("Failed to parse client's local message index: %v", err)
+			} else {
+				if localMsgIndx < len(msgs) {
+					for i := localMsgIndx; i < len(msgs); i++ {
+						c.WriteMessage(websocket.TextMessage, msgs[i].Content)
+					}
+				}
+			}
+
+		}
 
 		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
-		var (
-			msg []byte
-			err error
-		)
 		for {
 
-			_, msg, err = c.ReadMessage()
+			_, msgContent, err := c.ReadMessage()
 			if err != nil {
 				log.Println("ERROR:", err)
 				break
 			}
+			msg := model.NewMessage(c.IP(), globalMsgIndx, msgContent)
+
+			Indx, err := util.ExtractMsgIndxFromMsgId(msg.ID)
+			if err != nil {
+				log.Printf("Failed to extract message index from message ID: %v", err)
+				continue
+			}
+
+			msgs[Indx] = msg
 			
-			if string(msg) == "ACK" {
+			if string(msg.Content) == "ACK" {
 				//TODO: handle ACK from client
 				continue
 			}
@@ -52,10 +76,10 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 
 			globalMsgIndx++
 
-			// err = writeToClients(clients, msg)
-			// if err != nil {
-			// 	log.Println("ERROR:", err)
-			// }
+			err = writeToClients(clients, msg.Content)
+			if err != nil {
+				log.Println("ERROR:", err)
+			}
 
 		}
 

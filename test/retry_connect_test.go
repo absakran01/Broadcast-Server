@@ -1,4 +1,4 @@
-package client
+package test
 
 import (
 	"broadcast-server/cmd/client"

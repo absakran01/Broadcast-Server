@@ -12,7 +12,7 @@ import (
 
 var (
 	headers = http.Header{
-		"User-Agent": []string{"RedisRelayClient/1.0"},
+		"User-Agent": []string{"Broadcast-ServerClient/1.0"},
 	}
 	localMsgIndx = -1
 )
@@ -36,13 +36,14 @@ func CreateSocketConnection(host string, port string) {
 		}
 
 		if globalMsgIndx > localMsgIndx && localMsgIndx != -1 {
-			//TODO: request missed messages
+			conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d", localMsgIndx)))
 		} else {
 			localMsgIndx = globalMsgIndx
 		}
 
 		go receive(conn, quit, reconnect, &localMsgIndx)
-		go write(conn, quit, reconnect)
+		go writeUserInput(conn, quit, reconnect)
+		// go waitFor5SecsThenDisconnect(conn, quit, reconnect)
 
 		err = <-reconnect
 		log.Printf("Reconnection triggered: %v", err)
@@ -90,3 +91,9 @@ func getMsgIndx(conn *websocket.Conn) (int, error) {
 
 	return localMsgIndx, nil
 }
+
+// func waitFor5SecsThenDisconnect(conn *websocket.Conn, quit chan struct{}, reconnect chan error) {
+// 	time.Sleep(5 * time.Second)
+// 	log.Println("Simulating disconnection after 5 seconds")
+// 	reconnect <- fmt.Errorf("simulated disconnection")
+// }

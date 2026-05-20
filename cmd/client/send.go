@@ -15,7 +15,7 @@ var (
 	input string
 )
 
-func write(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error) {
+func writeUserInput(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error) {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
