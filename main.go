@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"redisrelay/cmd/client"
-	"redisrelay/cmd/server"
-	"redisrelay/model"
+	"broadcast-server/cmd/client"
+	"broadcast-server/cmd/server"
+	"broadcast-server/model"
 
 	"github.com/gofiber/contrib/websocket"
 	fiber "github.com/gofiber/fiber/v2"

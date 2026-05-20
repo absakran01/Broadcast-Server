@@ -2,7 +2,7 @@ package server
 
 import (
 	"log"
-	"redisrelay/model"
+	"broadcast-server/model"
 
 	"github.com/gofiber/contrib/websocket"
 )

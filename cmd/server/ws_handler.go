@@ -1,7 +1,7 @@
 package server
 
 import (
-	"redisrelay/model"
+	"broadcast-server/model"
 
 	"github.com/gofiber/contrib/websocket"
 	fiber "github.com/gofiber/fiber/v2"

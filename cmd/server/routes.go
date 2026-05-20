@@ -2,7 +2,7 @@ package server
 
 import (
 
-	"redisrelay/model"
+	"broadcast-server/model"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
