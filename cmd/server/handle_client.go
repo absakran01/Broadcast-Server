@@ -1,14 +1,17 @@
 package server
 
 import (
+	"broadcast-server/internal/comms"
 	"broadcast-server/internal/model"
 	"log"
+	"strconv"
 
 	"github.com/gofiber/contrib/websocket"
 )
 
-const (
-	ACK = "ack"
+
+var (
+	globalMsgIndx = 0
 )
 
 func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
@@ -19,8 +22,10 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 		log.Println(c.Query("v"))         // 1.0
 		log.Println(c.Cookies("session")) // ""
 
-		addClient(clients, c)
-		defer removeClient(clients, c)
+		clients.Add(c)
+		defer clients.Remove(c)
+
+		writeToClient(c, []byte(strconv.Itoa(globalMsgIndx)))
 
 		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
 		var (
@@ -29,18 +34,18 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 		)
 		for {
 
-			 _, msg, err = c.ReadMessage()
+			_, msg, err = c.ReadMessage()
 			if err != nil {
 				log.Println("ERROR:", err)
 				break
 			}
 
-			if msg != nil {
-				err = writeToSender(c, []byte(ACK))
-				if err != nil {
-					log.Println("ERROR:", err)
-				}
+			err = comms.AckMsg(msg, c)
+			if err != nil {
+				log.Println("ERROR:", err)
 			}
+
+			globalMsgIndx++
 
 			// err = writeToClients(clients, msg)
 			// if err != nil {
@@ -50,16 +55,4 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 		}
 
 	}
-}
-
-func addClient(clients *model.Clients, c *websocket.Conn) {
-	clients.Mu.Lock()
-	defer clients.Mu.Unlock()
-	clients.WsConns[c.RemoteAddr().String()] = c
-}
-
-func removeClient(clients *model.Clients, c *websocket.Conn) {
-	clients.Mu.Lock()
-	defer clients.Mu.Unlock()
-	delete(clients.WsConns, c.RemoteAddr().String())
 }

@@ -22,7 +22,7 @@ var (
 func main() {
 	port := flag.String("port", "8080", "Port")
     host := flag.String("host", "127.0.0.1", "Host")
-	mode := flag.String("mode", "server", "Mode (client or server)")
+	mode := flag.String("mode", "client", "Mode (client or server)")
 	flag.Parse()
     // redisAddr := flag.String("redis", "localhost:6379", "Redis server address")
 
