@@ -35,7 +35,7 @@ func Connect(host string, port string) {
 		return
 	}
 
-	if localMsgIndx > globalMsgIndx && localMsgIndx != -1 {
+	if globalMsgIndx > localMsgIndx && localMsgIndx != -1 {
 		//TODO: request missed messages from server
 	} else {
 		localMsgIndx = globalMsgIndx

@@ -23,7 +23,7 @@ func write(remoteConn *websocket.Conn) {
 		if err != nil {
 			panic("failed to read ack from server: " + err.Error())
 		}
-		if string(ack) != "ack" {
+		if string(ack) != "ACK" {
 			panic("unexpected response from server: " + string(ack))
 		}
 	}

@@ -16,7 +16,7 @@ func recieve(remoteConn *websocket.Conn, localMsgIndx int) {
 		fmt.Printf("localMsgIndx: %d\n", localMsgIndx)
 		localMsgIndx++
 
-		err = remoteConn.WriteMessage(websocket.TextMessage, []byte("ack"))
+		err = remoteConn.WriteMessage(websocket.TextMessage, []byte("ACK"))
 		if err != nil {
 			panic("failed to send ack to server: " + err.Error())
 		}

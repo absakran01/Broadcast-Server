@@ -39,6 +39,11 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 				log.Println("ERROR:", err)
 				break
 			}
+			
+			if string(msg) == "ACK" {
+				//TODO: handle ACK from client
+				continue
+			}
 
 			err = comms.AckMsg(msg, c)
 			if err != nil {
