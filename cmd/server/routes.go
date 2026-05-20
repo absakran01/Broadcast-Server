@@ -2,7 +2,7 @@ package server
 
 import (
 
-	"broadcast-server/model"
+	"broadcast-server/internal/model"
 
 	fiber "github.com/gofiber/fiber/v2"
 )

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"broadcast-server/model"
+	"broadcast-server/internal/model"
 
 	"github.com/gofiber/contrib/websocket"
 )
