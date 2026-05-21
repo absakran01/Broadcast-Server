@@ -6,14 +6,15 @@ import (
 )
 
 type Message struct {
-	// msgID = clientID-randUID-msgIndex
+	// msgID = clientID:msgUID-msgIndex
+	//clientID = client.RemoteAddr() + ":" + instanceUID
 	ID      string `json:"id"`
 	Content []byte `json:"text"`
 }
 
 func NewMessage(clientID string, msgIndex int, content []byte) *Message {
-	randUID := util.GenerateUID()
-	id := fmt.Sprintf("%s-%s-%d", clientID, randUID, msgIndex)
+	msgUID := util.GenerateUID()
+	id := fmt.Sprintf("%s:%s-%d", clientID, msgUID, msgIndex)
 	return &Message{
 		ID:      id,
 		Content: content,

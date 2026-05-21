@@ -12,17 +12,16 @@ type Clients struct {
 	Mu      sync.Mutex
 }
 
-func (clients *Clients) Add(c *websocket.Conn, clientID string) string {
+func (clients *Clients) Add(c *websocket.Conn, clientID string) {
 	clients.Mu.Lock()
 	defer clients.Mu.Unlock()
 	clients.WsConns[clientID] = c
-	return clientID
 }
 
-func (clients *Clients) Remove(uid string) {
+func (clients *Clients) Remove(clientID string) {
 	clients.Mu.Lock()
 	defer clients.Mu.Unlock()
-	delete(clients.WsConns, uid)
+	delete(clients.WsConns, clientID)
 }
 
 func GenClientID(c *websocket.Conn) string {

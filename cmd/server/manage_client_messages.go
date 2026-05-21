@@ -15,6 +15,7 @@ func manageClientMessages(c *websocket.Conn, clients *model.Clients, clientID st
 			log.Println("ERROR:", err)
 			break
 		}
+		
 		msg := model.NewMessage(clientID, globalMsgIndx, msgContent)
 
 		Indx, err := util.ExtractMsgIndxFromMsgId(msg.ID)
