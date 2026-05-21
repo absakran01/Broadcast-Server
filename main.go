@@ -3,21 +3,13 @@ package main
 import (
 	"broadcast-server/cmd/client"
 	"broadcast-server/cmd/server"
-	"broadcast-server/internal/model"
 	"flag"
-
-	"github.com/gofiber/contrib/websocket"
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
-var (
-	clients = &model.Clients{
-		WsConns: make(map[string]*websocket.Conn),
-	}
-)
 
 func main() {
-	port := flag.String("port", "8080", "Port")
+	port := flag.String("port", "8080", "Broadcast server port")
 	host := flag.String("host", "127.0.0.1", "Host")
 	mode := flag.String("mode", "client", "Mode (client or server)")
 	flag.Parse()
@@ -26,7 +18,7 @@ func main() {
 	if *mode == "server" {
 		serverApp := fiber.New()
 
-		server.Routes(serverApp, clients)
+		server.Routes(serverApp)
 
 		if err := serverApp.Listen(*host + ":" + *port); err != nil {
 			panic(err)

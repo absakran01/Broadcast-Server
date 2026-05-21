@@ -1,15 +1,12 @@
 package server
 
 import (
-
-	"broadcast-server/internal/model"
-
-	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2"
 )
 
-func Routes(app *fiber.App, clients *model.Clients) {
+func Routes(app *fiber.App) {
 	app.Get("/ws", HandleInitWsConnection)
 	app.Get("/ws", func(c *fiber.Ctx) error {
-		return HandleWsConnection(c, clients)
+		return HandleWsConnection(c)
 	})
 }
