@@ -35,7 +35,7 @@ func HandleCLient() func(c *websocket.Conn) {
 		}
 
 		// Sync client messages based on the received sync message and replay any missed messages
-		err = syncClientMessages(clientID, sync, msgs, c)
+		err = syncClientMessages(sync, msgs, c)
 		if err != nil {
 			log.Printf("Failed to sync client messages: %v", err)
 			return

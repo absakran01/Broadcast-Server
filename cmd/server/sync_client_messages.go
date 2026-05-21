@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/contrib/websocket"
 )
 
-func syncClientMessages(clientID string, sync []byte, msgs map[int]*model.Message, c *websocket.Conn) error {
+func syncClientMessages(sync []byte, msgs map[int]*model.Message, c *websocket.Conn) error {
 	ok, localMsgIndx := parseSyncMessage(sync)
 	if !ok {
 		return fmt.Errorf("invalid sync message format: %s", string(sync))
