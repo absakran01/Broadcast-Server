@@ -14,13 +14,12 @@ var (
 	}
 )
 
-
-func GenerateMessageUID() string {
+func GenerateUID() string {
 	return uuid.NewString()
 }
 
-func ExtractClientIpFromMsgId(msgId string) (string, error) {
-	parts := strings.Split(msgId, "-")
+func ExtractClientIDFromMsgId(msgId string) (string, error) {
+	parts := strings.Split(msgId, ":")
 	if len(parts) > 0 {
 		return parts[0], nil
 	}

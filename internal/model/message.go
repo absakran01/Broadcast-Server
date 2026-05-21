@@ -6,14 +6,14 @@ import (
 )
 
 type Message struct {
-	// msgID = clientIP-randUID-msgIndex
+	// msgID = clientID-randUID-msgIndex
 	ID      string `json:"id"`
 	Content []byte `json:"text"`
 }
 
-func NewMessage(clientIp string, msgIndex int, content []byte) *Message {
-	randUID := util.GenerateMessageUID()
-	id := fmt.Sprintf("%s-%s-%d", clientIp, randUID, msgIndex)
+func NewMessage(clientID string, msgIndex int, content []byte) *Message {
+	randUID := util.GenerateUID()
+	id := fmt.Sprintf("%s-%s-%d", clientID, randUID, msgIndex)
 	return &Message{
 		ID:      id,
 		Content: content,

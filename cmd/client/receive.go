@@ -29,7 +29,7 @@ func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error,
 				continue
 			}
 
-			fmt.Println("Received:", string(msg))
+			fmt.Println(string(msg))
 			*msgIdx++
 
 			conn.WriteMessage(websocket.TextMessage, []byte("ACK"))

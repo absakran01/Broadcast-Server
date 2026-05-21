@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,6 +16,7 @@ var (
 
 func writeUserInput(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error) {
 	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("connect to server and start typing messages (type 'exit' to quit):")
 
 	for {
 		select {
@@ -24,9 +24,12 @@ func writeUserInput(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<-
 			log.Println("Write goroutine stopping...")
 			return
 		default:
-			fmt.Print("Enter message: ")
 			input, _ := reader.ReadString('\n')
 			input = strings.TrimSpace(input)
+			if input == "exit" {
+				log.Println("Exit command received. Stopping client...")
+				return
+			}
 
 			err := conn.WriteMessage(websocket.TextMessage, []byte(input))
 			if err != nil {
@@ -37,7 +40,6 @@ func writeUserInput(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<-
 				}
 				return
 			}
-			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }

@@ -35,9 +35,9 @@ func CreateSocketConnection(host string, port string) {
 			continue
 		}
 
-		if globalMsgIndx > localMsgIndx && localMsgIndx != -1 {
-			conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%d", localMsgIndx)))
-		} else {
+		
+		conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("SYNC:%d", localMsgIndx)))
+		if localMsgIndx  < 0 {
 			localMsgIndx = globalMsgIndx
 		}
 

@@ -21,9 +21,9 @@ func TestNewMessage(t *testing.T) {
 	for _, tt := range tests {
 		msg := model.NewMessage(tt.clientIp, tt.msgIndx, tt.content)
 
-		clientIp, err := util.ExtractClientIpFromMsgId(msg.ID)
+		clientID, err := util.ExtractClientIDFromMsgId(msg.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, tt.clientIp, clientIp)
+		assert.Equal(t, tt.clientIp, clientID)
 
 		msgIndx, err := util.ExtractMsgIndxFromMsgId(msg.ID)
 		assert.NoError(t, err)

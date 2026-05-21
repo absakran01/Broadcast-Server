@@ -10,10 +10,9 @@ import (
 	"github.com/gofiber/contrib/websocket"
 )
 
-
 var (
 	globalMsgIndx = 0
-	msgs		  = make(map[int]*model.Message)
+	msgs          = make(map[int]*model.Message)
 )
 
 func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
@@ -24,23 +23,20 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 		log.Println(c.Query("v"))         // 1.0
 		log.Println(c.Cookies("session")) // ""
 
-		clients.Add(c)
-		defer clients.Remove(c)
+		clientID := model.GenClientID(c)
+		uid := clients.Add(c, clientID)
+		defer clients.Remove(uid)
 
 		writeToClient(c, []byte(strconv.Itoa(globalMsgIndx)))
-		_, clientLocalMsgIndx, err := c.ReadMessage()
-		if clientLocalMsgIndx == nil || err != nil {
+		_, sync, err := c.ReadMessage()
+		ok, localMsgIndx := parseSyncMessage(sync)
+		if !ok || err != nil {
 			log.Printf("Failed to read client's local message index: %v", err)
 		} else {
-			log.Printf("Client's local message index: %s", string(clientLocalMsgIndx))
-			localMsgIndx, err := strconv.Atoi(string(clientLocalMsgIndx))
-			if err != nil {
-				log.Printf("Failed to parse client's local message index: %v", err)
-			} else {
-				if localMsgIndx < len(msgs) {
-					for i := localMsgIndx; i < len(msgs); i++ {
-						c.WriteMessage(websocket.TextMessage, msgs[i].Content)
-					}
+			log.Printf("Client's local message index: %d", localMsgIndx)
+			if localMsgIndx < len(msgs) && localMsgIndx > -1 {
+				for i := localMsgIndx; i < len(msgs); i++ {
+					c.WriteMessage(websocket.TextMessage, msgs[i].Content)
 				}
 			}
 
@@ -54,7 +50,7 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 				log.Println("ERROR:", err)
 				break
 			}
-			msg := model.NewMessage(c.IP(), globalMsgIndx, msgContent)
+			msg := model.NewMessage(clientID, globalMsgIndx, msgContent)
 
 			Indx, err := util.ExtractMsgIndxFromMsgId(msg.ID)
 			if err != nil {
@@ -63,7 +59,7 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 			}
 
 			msgs[Indx] = msg
-			
+
 			if string(msg.Content) == "ACK" {
 				//TODO: handle ACK from client
 				continue
@@ -76,7 +72,7 @@ func HandleCLient(clients *model.Clients) func(c *websocket.Conn) {
 
 			globalMsgIndx++
 
-			err = writeToClients(clients, msg.Content)
+			err = writeToClients(clients, msg.Content, msg.ID)
 			if err != nil {
 				log.Println("ERROR:", err)
 			}
