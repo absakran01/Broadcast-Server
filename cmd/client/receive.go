@@ -31,8 +31,6 @@ func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error,
 
 			fmt.Println(string(msg))
 			*msgIdx++
-
-			conn.WriteMessage(websocket.TextMessage, []byte("ACK"))
 		}
 	}
 }
