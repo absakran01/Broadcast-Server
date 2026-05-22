@@ -23,7 +23,6 @@ func Start(host string, port string) {
 
 }
 
-
 func printCacheStatsEvery5Seconds() {
 	for {
 		time.Sleep(5 * time.Second)

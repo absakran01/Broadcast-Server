@@ -7,7 +7,12 @@ import (
 	"github.com/gofiber/contrib/websocket"
 )
 
-func establishConnection(c *websocket.Conn) {
+func establishConnection(c *websocket.Conn, clientID string) {
+
+	//add client to clients to receive messages from other clients
+	clients.Add(c, clientID)
+	
+
 	// Send the current global message index to the client for synchronization
 	writeToClient(c, []byte(strconv.Itoa(cache.Count())))
 	_, sync, err := c.ReadMessage()
