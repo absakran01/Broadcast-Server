@@ -4,9 +4,7 @@ import (
 	"broadcast-server/cmd/client"
 	"broadcast-server/cmd/server"
 	"flag"
-	"github.com/gofiber/fiber/v2"
 )
-
 
 func main() {
 	port := flag.String("port", "8080", "Broadcast server port")
@@ -16,13 +14,8 @@ func main() {
 	// redisAddr := flag.String("redis", "localhost:6379", "Redis server address")
 
 	if *mode == "server" {
-		serverApp := fiber.New()
-
-		server.Routes(serverApp)
-
-		if err := serverApp.Listen(*host + ":" + *port); err != nil {
-			panic(err)
-		}
+		server.Start(*host, *port)
+		defer server.Shutdown()
 	}
 
 	if *mode == "client" {

@@ -3,8 +3,8 @@ package server
 import (
 	"broadcast-server/internal/comms"
 	"broadcast-server/internal/model"
-	"broadcast-server/internal/util"
 	"log"
+
 	"github.com/gofiber/contrib/websocket"
 )
 
@@ -15,27 +15,20 @@ func manageClientMessages(c *websocket.Conn, clients *model.Clients, clientID st
 			log.Println("ERROR:", err)
 			break
 		}
-		
-		msg := model.NewMessage(clientID, globalMsgIndx, msgContent)
 
-		Indx, err := util.ExtractMsgIndxFromMsgId(msg.ID)
-		if err != nil {
-			log.Printf("Failed to extract message index from message ID: %v", err)
-			continue
-		}
+		msg := model.NewMessage(clientID, cache.Count(), msgContent)
 
-		msgs[Indx] = msg
 		if string(msg.Content) == "ACK" {
 			//TODO: handle ACK from client
 			continue
 		}
+		cache.Set(msg.ID, msg)
+		log.Printf("Received message from client %s: %s (ID: %s)", clientID, string(msg.Content), msg.ID)
 
 		err = comms.AckMsg(msg, c)
 		if err != nil {
 			log.Println("ERROR:", err)
 		}
-
-		globalMsgIndx++
 
 		err = writeToClients(clients, msg.Content, msg.ID)
 		if err != nil {
