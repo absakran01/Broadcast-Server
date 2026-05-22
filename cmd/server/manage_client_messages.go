@@ -16,13 +16,13 @@ func manageClientMessages(c *websocket.Conn, clients *model.Clients, clientID st
 			break
 		}
 
-		       // Parse UID and content from the message
-		       msgUID, content, err := model.ParseUIDAndContent(msgContent)
-		       if err != nil {
-			       log.Printf("Invalid message format: %v", err)
-			       continue
-		       }
-		       msg := model.NewMessage(clientID, msgUID, cache.Count(), content)
+		// Parse UID and content from the message
+		msgUID, content, err := model.ParseUIDAndContent(msgContent)
+		if err != nil {
+			log.Printf("Invalid message format: %v", err)
+			continue
+		}
+		msg := model.NewMessage(clientID, msgUID, cache.Count(), content)
 
 		if string(msg.Content) == "ACK" {
 			//TODO: handle ACK from client

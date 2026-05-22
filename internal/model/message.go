@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 )
+
 // ParseUIDAndContent splits a message in the format UID|content and returns UID and content.
 func ParseUIDAndContent(msg []byte) (string, []byte, error) {
 	parts := strings.SplitN(string(msg), "|", 2)
@@ -21,9 +22,9 @@ type Message struct {
 }
 
 func NewMessage(clientID string, msgUID string, msgIndex int, content []byte) *Message {
-       id := fmt.Sprintf("%s:%s-%d", clientID, msgUID, msgIndex)
-       return &Message{
-	       ID:      id,
-	       Content: content,
-       }
+	id := fmt.Sprintf("%s:%s-%d", clientID, msgUID, msgIndex)
+	return &Message{
+		ID:      id,
+		Content: content,
+	}
 }
