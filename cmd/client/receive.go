@@ -24,7 +24,6 @@ func receive(clientConnection *model.ClientConnection, quit <-chan struct{}, rec
 				return
 			}
 
-
 			_, msg, err := clientConnection.Conn.ReadMessage()
 
 			if err != nil {
