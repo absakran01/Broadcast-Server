@@ -13,7 +13,11 @@ func HandleCLient() func(c *websocket.Conn) {
 
 		clientID := model.GenClientID(c)
 		
-		establishConnection(c, clientID)
+		err := establishConnection(c, clientID)
+		if err != nil {
+			log.Printf("Failed to establish connection for client %s: %v", clientID, err)
+			return
+		}
 
 		defer clients.Remove(clientID)
 

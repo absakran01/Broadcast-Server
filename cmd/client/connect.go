@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	"broadcast-server/internal/model"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,6 +15,11 @@ var (
 		"User-Agent": []string{"Broadcast-ServerClient/1.0"},
 	}
 	localMsgIndx = -1
+	globalMsgIndx = -1
+	quit        chan struct{}
+	reconnect   chan error
+	conn        *websocket.Conn
+
 )
 
 func CreateSocketConnection(host string, port string) {
@@ -22,34 +27,34 @@ func CreateSocketConnection(host string, port string) {
 
 	for {
 
-		quit := make(chan struct{})
-		reconnect := make(chan error, 2)
+		quit = make(chan struct{})
+		reconnect = make(chan error, 2)
 
-		conn := dialWithRetry(addr)
+		conn = dialWithRetry(addr)
 
-		globalMsgIndx, err := getMsgIndx(conn)
+
+
+		
+		
+
+		clientConnection := &model.ClientConnection{Conn: conn}
+
+		err := establishConnection(clientConnection)
 		if err != nil {
-			log.Printf("failed to get index: %v", err)
-			conn.Close()
-			time.Sleep(2 * time.Second)
+			log.Printf("Failed to establish connection: %v", err)
 			continue
 		}
 
-		
-		conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("SYNC:%d", localMsgIndx)))
-		if localMsgIndx  < 0 {
-			localMsgIndx = globalMsgIndx
-		}
-
-		go receive(conn, quit, reconnect, &localMsgIndx)
-		go writeUserInput(conn, quit, reconnect)
-		// go waitFor5SecsThenDisconnect(conn, quit, reconnect)
+		go writeUserInput(clientConnection, quit, reconnect, true)
+		go receive(clientConnection, quit, reconnect, &localMsgIndx, false)
+	
+		// go waitFor5SecsThenDisconnect(clientConnection, quit, reconnect)
 
 		err = <-reconnect
 		log.Printf("Reconnection triggered: %v", err)
 
 		close(quit)
-		conn.Close()
+		clientConnection.Conn.Close()
 
 		time.Sleep(2 * time.Second)
 	}

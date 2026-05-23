@@ -18,7 +18,10 @@ func syncClientMessages(sync []byte, cache *ttlcache.Cache, c *websocket.Conn) e
 		if localMsgIndx < cache.Count() && localMsgIndx > -1 {
 			for i := localMsgIndx; i < cache.Count(); i++ {
 				if msg, ok := cache.Get(fmt.Sprintf("%d", i)); ok {
-					c.WriteMessage(websocket.TextMessage, msg.(*model.Message).Content)
+					err := writeWithAck(c, msg.(model.Message))
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}

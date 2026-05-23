@@ -1,13 +1,16 @@
 package client
 
 import (
+	"broadcast-server/internal/model"
 	"fmt"
 	"log"
-
-	"github.com/gorilla/websocket"
 )
 
-func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error, msgIdx *int) {
+var (
+	inCh = make(chan string)
+)
+
+func receive(clientConnection *model.ClientConnection, quit <-chan struct{}, reconnect chan<- error, msgIdx *int, limited bool) {
 	for {
 		select {
 		case <-quit:
@@ -15,7 +18,15 @@ func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error,
 			return
 		default:
 
-			_, msg, err := conn.ReadMessage()
+			// If limited is true, stop receiving after reaching globalMsgIndx for client synchronization
+			if limited && *msgIdx == globalMsgIndx {
+				log.Printf("Receive limit of %d reached, stopping receive goroutine", globalMsgIndx)
+				return
+			}
+
+
+			_, msg, err := clientConnection.Conn.ReadMessage()
+
 			if err != nil {
 				select {
 				case reconnect <- err: // Try to send
@@ -26,11 +37,17 @@ func receive(conn *websocket.Conn, quit <-chan struct{}, reconnect chan<- error,
 			}
 
 			if string(msg) == "ACK" {
+				log.Println("ACK received from server")
+				ackCh <- true
 				continue
 			}
+			// clientConnection.Mu.Lock()
+			// err = clientConnection.Conn.WriteMessage(websocket.TextMessage, []byte("ACK"))
+			// clientConnection.Mu.Unlock()
 
 			fmt.Println(string(msg))
 			*msgIdx++
+
 		}
 	}
 }
