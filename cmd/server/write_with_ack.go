@@ -3,7 +3,6 @@ package server
 import (
 	"broadcast-server/internal/model"
 	"fmt"
-
 	"github.com/gofiber/contrib/websocket"
 )
 
