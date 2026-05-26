@@ -79,14 +79,6 @@ go build -o broadcast-server
 ./broadcast-server start
 ```
 
-Default output:
-
-```text
-Server running on:
-
-localhost:8080
-```
-
 ## Connect client
 
 Open another terminal:
